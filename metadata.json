@@ -1,0 +1,6 @@
+{
+  "name": "MARKETPLACE Portugal",
+  "description": "Plataforma profissional de compra, venda e aluguer de produtos, viaturas, imóveis e serviços em Portugal com CRM exclusivo e gestão avançada de planos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
