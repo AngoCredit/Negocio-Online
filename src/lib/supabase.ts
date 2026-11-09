@@ -1,8 +1,11 @@
-/**
- * Supabase Client & Configuration Bridge
- * Adheres to Supabase PostgreSQL architecture for production deployment.
- */
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * Supabase browser client.
+ *
+ * Only the project URL and publishable/anon key belong in the browser.
+ * Never expose the service_role key in VITE_* variables or client code.
+ */
 export interface SupabaseConfig {
   url: string;
   anonKey: string;
@@ -10,21 +13,30 @@ export interface SupabaseConfig {
 }
 
 export function getSupabaseConfig(): SupabaseConfig {
-  const url = (import.meta as any).env?.VITE_SUPABASE_URL || '';
-  const anonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+  const url = import.meta.env.VITE_SUPABASE_URL?.trim() ?? '';
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim() ?? '';
+
   return {
     url,
     anonKey,
-    isConfigured: Boolean(url && anonKey && !url.includes('placeholder')),
+    isConfigured: Boolean(url && anonKey),
   };
 }
 
-export const SUPABASE_CONFIG_INSTRUCTIONS = {
-  description: 'Para ligar a sua base de dados PostgreSQL no Supabase:',
-  steps: [
-    '1. Aceda a https://supabase.com e crie um novo projeto (ex: marketplace-pt)',
-    '2. No menu SQL Editor do Supabase, execute as migrações criadas (001_initial_schema.sql e 002_rls_policies.sql)',
-    '3. Copie o Project URL e o Anon Public API Key nas definições do Supabase (Project Settings > API)',
-    '4. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY',
-  ],
-};
+const config = getSupabaseConfig();
+
+/**
+ * Null until the local environment has valid Supabase credentials.
+ * Consumers must check availability before making requests.
+ */
+export const supabase: SupabaseClient | null = config.isConfigured
+  ? createClient(config.url, config.anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;
+
+export const isSupabaseConfigured = config.isConfigured;
